@@ -1,5 +1,6 @@
 ﻿using Microsoft.Identity.Client;
 using System;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -225,7 +226,7 @@ namespace active_directory_wpf_msgraph_v2
 
                 TokenResponseText.Text += $"Correlation Id: {authResult.CorrelationId}" + Environment.NewLine;
                 TokenResponseText.Text += $"Tenant Id: {authResult.TenantId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Unique Id: {authResult.UniqueId}" + Environment.NewLine;
+                TokenResponseText.Text += $"Unique Id: {authResult.UniqueId}";
             }
         }
 
@@ -239,47 +240,15 @@ namespace active_directory_wpf_msgraph_v2
             {
                 var idToken = idtokenHandler.ReadJwtToken(authResult.IdToken);
                 var claims = idToken.Claims;
+                int handled = 0;
                 foreach (var claim in claims)
                 {
-                    IDToken.Text += "\"" + claim.Type + "\": \"" + claim.Value + "\"" + Environment.NewLine;
+                    IDToken.Text += "\"" + claim.Type + "\": \"" + claim.Value + "\"";
+                    if (++handled < claims.Count())
+                    {
+                        IDToken.Text += Environment.NewLine;
+                    }
                 }
-            }
-        }
-
-
-        private void Results_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (ResultText.IsVisible)
-            {
-                ResultText.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                ResultText.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void Response_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (TokenResponseText.IsVisible)
-            {
-                TokenResponseText.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                TokenResponseText.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void IDToken_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (IDToken.IsVisible)
-            {
-                IDToken.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                IDToken.Visibility = Visibility.Visible;
             }
         }
 
