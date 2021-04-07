@@ -12,7 +12,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <local:MaxHeightConverter x:Key="MaxHeightConverter"/>
-            <sys:Double x:Key="adjMaxTabHeightRatio">0.93</sys:Double>
+            <sys:Double x:Key="adjMaxTabHeightRatio">0.99</sys:Double>
             <sys:Double x:Key="adjMaxPanelHeightRatio">0.99</sys:Double>
         </ResourceDictionary>
     </Window.Resources>
@@ -56,20 +56,20 @@
         </StackPanel>
 
         <StackPanel x:Name="Output" Grid.Row="1">
-            <TabControl x:Name="Tabs" MaxHeight="{Binding ElementName=Output, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxPanelHeightRatio}}">
+            <TabControl x:Name="Tabs" MaxHeight="530">
                 <TabItem Header="ID Token Claims " FontFamily="Segoe Ui" FontSize="30">
                     <StackPanel>
-                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxTabHeightRatio}}"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Auto" BorderThickness="0"/>
+                        <TextBox x:Name="IDToken" TextWrapping="NoWrap" MaxHeight="472" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Token Response " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxTabHeightRatio}}" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Auto" BorderThickness="0"/>
+                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" MaxHeight="472" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Results " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxTabHeightRatio}}" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Auto" BorderThickness="0" />
+                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" MaxHeight="472" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
             </TabControl>
