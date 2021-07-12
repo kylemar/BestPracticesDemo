@@ -1,15 +1,24 @@
 ﻿using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Desktop;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
+using Windows.UI;
 
-namespace active_directory_wpf_msgraph_v2
+
+namespace BestPractices
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -17,6 +26,7 @@ namespace active_directory_wpf_msgraph_v2
     public partial class MainWindow : Window
     {
         public IPublicClientApplication _clientApp = null;
+        StringBuilder sbLog = new StringBuilder();
 
         public MainWindow()
         {
@@ -28,6 +38,9 @@ namespace active_directory_wpf_msgraph_v2
         /// </summary>
         private async void SignInButton_Click(object sender, RoutedEventArgs e)
         {
+            LogText.Text = String.Empty;
+            sbLog.Clear();
+
             if (_clientApp != null )
             {
                 var accounts = await _clientApp.GetAccountsAsync();
@@ -40,23 +53,41 @@ namespace active_directory_wpf_msgraph_v2
                     }
                     catch (MsalException msalex)
                     {
-                        System.Diagnostics.Debug.WriteLine("Error Acquiring Token: " + msalex.Message);
+                        sbLog.AppendLine("Error signing out user: " + msalex.Message);
                     }
                 }
             }
 
             ComboBoxItem authority = Authority.SelectedItem as ComboBoxItem;
-            _clientApp = PublicClientApplicationBuilder.Create(App.ClientId)
-                .WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient")
-                .WithAuthority(AzureCloudInstance.AzurePublic, authority.Tag as String)
-                .WithClientCapabilities(new [] {"cp1"})
-                .Build();
+            var builder = PublicClientApplicationBuilder.Create(App.ClientId)
+                .WithAuthority(AzureCloudInstance.AzurePublic, authority.Tag as String);
+
+            if (true==CAE.IsChecked)
+            {
+                builder.WithClientCapabilities(new[] { "cp1" });
+            }
+
+            ComboBoxItem account = Accounts.SelectedItem as ComboBoxItem;
+            var accountType = account.Tag as string;
+            if (accountType.Contains("Windows"))
+            {
+                builder.WithExperimentalFeatures();
+                builder.WithWindowsBroker(true);  
+                builder.WithDefaultRedirectUri();
+            }
+            else
+            {
+                builder.WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient");
+            }
+
+            _clientApp = builder.Build();
             TokenCacheHelper.EnableSerialization(_clientApp.UserTokenCache);
 
             ComboBoxItem scopes = Scopes.SelectedItem as ComboBoxItem;
             var ScopesString = scopes.Tag as String;
             string[] scopesRequest = ScopesString.Split(' ');
             ResultText.Text = await AuthAndCallAPI(null, scopesRequest);
+            LogText.Text = sbLog.ToString();
         }
 
         /// <summary>
@@ -71,6 +102,7 @@ namespace active_directory_wpf_msgraph_v2
             string[] scopes = new string[] { "user.read" };
 
             ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
+            LogText.Text = sbLog.ToString();
         }
 
         private async void CallPeopleButton_Click(object sender, RoutedEventArgs e)
@@ -81,24 +113,57 @@ namespace active_directory_wpf_msgraph_v2
             string[] scopes = new string[] { "people.read" };
 
             ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
+            LogText.Text = sbLog.ToString();
         }
 
         private async void CallGroupsButton_Click(object sender, RoutedEventArgs e)
         {
             //Set the API Endpoint to Graph 'Groups' endpoint
             string graphAPIEndpoint = "https://graph.microsoft.com/v1.0/groups";
-
             string[] scopes = new string[] { "group.read.all" };
 
             ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
+            LogText.Text = sbLog.ToString();
+        }
+
+        private async Task<string> AuthAndCallAPI(string APIEndpoint, string [] scopes)
+        {
+            ResultText.Text = string.Empty;
+            TokenResponseText.Text = string.Empty;
+            IDToken.Text = string.Empty;
+
+            var accessToken = await GetAccessToken(scopes);
+            if (null != accessToken)
+            {
+                if (!string.IsNullOrEmpty(APIEndpoint))
+                {
+                    return await GetHttpContentWithToken(APIEndpoint, accessToken, scopes);
+                }
+            }
+            return null;
         }
 
         private async Task<string> GetAccessToken(string[] scopes)
         {
-            var accounts = await _clientApp.GetAccountsAsync();
-            var firstAccount = accounts.FirstOrDefault();
-            AuthenticationResult authResult = null;
+            IAccount firstAccount;
 
+            switch (Accounts.SelectedIndex)
+            {
+                case 0:
+                    firstAccount = PublicClientApplication.OperatingSystemAccount;
+                    break;
+
+                case 1:
+                    firstAccount = null;
+                    break;
+
+                default:
+                    var accounts = await _clientApp.GetAccountsAsync();
+                    firstAccount = accounts.FirstOrDefault();
+                    break;
+            }
+
+        AuthenticationResult authResult = null;
             try
             {
                 authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
@@ -109,7 +174,7 @@ namespace active_directory_wpf_msgraph_v2
             {
                 // A MsalUiRequiredException happened on AcquireTokenSilent. 
                 // This indicates you need to call AcquireTokenInteractive to acquire a token
-                System.Diagnostics.Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+                sbLog.AppendLine($"MsalUiRequiredException: {ex.Message}");
 
                 try
                 {
@@ -121,13 +186,13 @@ namespace active_directory_wpf_msgraph_v2
                 }
                 catch (MsalException msalex)
                 {
-                    System.Diagnostics.Debug.WriteLine("Error Acquiring Token: " + msalex.Message);
+                    sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Error Acquiring Token Silently: " + ex.Message);
+                sbLog.AppendLine("Error Acquiring Token Silently: " + ex.Message);
                 return null;
             }
 
@@ -180,26 +245,20 @@ namespace active_directory_wpf_msgraph_v2
                 return null;
             }
 
-            if (authResult != null)
+            if (null != authResult)
             {
+                await Dispatcher.BeginInvoke((Action)(() =>
+                {
+                    DisplayIDToken(authResult);
+                    DisplayBasicTokenResponseInfo(authResult);
+                    LogText.Text = sbLog.ToString();
+                }));
+
                 return authResult.AccessToken;
             }
-            return null;
-        }
-
-        private async Task<string> AuthAndCallAPI(string APIEndpoint, string [] scopes)
-        {
-            ResultText.Text = string.Empty;
-            TokenResponseText.Text = string.Empty;
-            IDToken.Text = string.Empty;
-
-            var accessToken = await GetAccessToken(scopes);
-            if (null != accessToken)
+            else
             {
-                if (!string.IsNullOrEmpty(APIEndpoint))
-                {
-                    return await GetHttpContentWithToken(APIEndpoint, accessToken, scopes);
-                }
+                return null;
             }
             return null;
         }
@@ -234,7 +293,8 @@ namespace active_directory_wpf_msgraph_v2
                     {
                         AuthenticationHeaderValue bearer = APIresponse.Headers.WwwAuthenticate.First
                             (v => v.Scheme == "Bearer");
-                        IEnumerable<string> parameters = bearer.Parameter.Split(',').Select(v => v.Trim()).ToList();
+                        IEnumerable<string> parameters = bearer.Parameter.Split(',').Select(
+                            v => v.Trim()).ToList();
                         var error = GetParameter(parameters, "error");
 
                         if (null != error && "insufficient_claims" == error)
@@ -242,16 +302,24 @@ namespace active_directory_wpf_msgraph_v2
                             var claimChallengeParameter = GetParameter(parameters, "claims");
                             if (null != claimChallengeParameter)
                             {
-                                var claimChallengebase64Bytes = System.Convert.FromBase64String(claimChallengeParameter);
-                                var ClaimChallenge = System.Text.Encoding.UTF8.GetString(claimChallengebase64Bytes);
+                                var claimChallengebase64Bytes = System.Convert.FromBase64String(
+                                    claimChallengeParameter);
+                                var ClaimChallenge = System.Text.Encoding.UTF8.GetString(
+                                    claimChallengebase64Bytes);
 
-                                var newAccessToken = await GetAccessTokenWithClaimChallenge(scopes, ClaimChallenge);
+                                var newAccessToken = await GetAccessTokenWithClaimChallenge(
+                                    scopes, ClaimChallenge);
                                 if (null != newAccessToken)
                                 {
-                                    var APIrequestAfterCAE = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, url);
-                                    APIrequestAfterCAE.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAccessToken);
+                                    var APIrequestAfterCAE = new HttpRequestMessage(
+                                        System.Net.Http.HttpMethod.Get, url);
+                                    APIrequestAfterCAE.Headers.Authorization = 
+                                        new System.Net.Http.Headers.AuthenticationHeaderValue(
+                                            "Bearer", newAccessToken);
+
                                     HttpResponseMessage APIresponseAfterCAE;
-                                    APIresponseAfterCAE = await httpClient.SendAsync(APIrequestAfterCAE);
+                                    APIresponseAfterCAE = await httpClient.SendAsync(
+                                        APIrequestAfterCAE);
 
                                     if (APIresponseAfterCAE.IsSuccessStatusCode)
                                     {
@@ -264,15 +332,56 @@ namespace active_directory_wpf_msgraph_v2
                         }
                         return APIresponse.StatusCode.ToString() + " " + "Authorization: " + bearer.ToString();
                     }
-                    System.Diagnostics.Debug.WriteLine(APIresponse.StatusCode + " " + APIresponse.Content.ReadAsStringAsync());
+                    sbLog.AppendLine(APIresponse.StatusCode + " " + APIresponse.Content.ReadAsStringAsync());
                     return APIresponse.StatusCode.ToString() + " " + APIresponse.ReasonPhrase;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                sbLog.AppendLine(ex.Message);
                 return null;
             }
+        }
+
+        private async Task<string> GetAccessTokenWithClaimChallenge(string[] scopes, 
+            string claimChallenge)
+        {
+            var accounts = await _clientApp.GetAccountsAsync();
+            var firstAccount = accounts.FirstOrDefault();
+            AuthenticationResult authResult = null;
+            try
+            {
+                authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
+                        .WithClaims(claimChallenge)
+                        .ExecuteAsync()
+                        .ConfigureAwait(false);
+            }
+            catch (MsalUiRequiredException)
+            {
+                try
+                {
+                    authResult = await _clientApp.AcquireTokenInteractive(scopes)
+                        .WithClaims(claimChallenge)
+                        .WithAccount(firstAccount)
+                        .ExecuteAsync()
+                        .ConfigureAwait(false);
+                }
+                catch (MsalException msalex)
+                {
+                    sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                sbLog.AppendLine(ex.Message);
+                return null;
+            }
+
+            if (authResult != null)
+            {
+                return authResult.AccessToken;
+            }
+            return null;
         }
 
         /// <summary>
@@ -294,7 +403,7 @@ namespace active_directory_wpf_msgraph_v2
                     }
                     catch (MsalException msalex)
                     {
-                        System.Diagnostics.Debug.WriteLine("Error Acquiring Token: " + msalex.Message);
+                        sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
                     }
                 }
             }
@@ -380,5 +489,14 @@ namespace active_directory_wpf_msgraph_v2
             return parameters.FirstOrDefault(p => p.StartsWith($"{parameterName}="))?.Substring(offset)?.Trim('"');
         }
 
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            mainGrid.Background = new SolidColorBrush(System.Windows.Media.Colors.Azure);
+        }
+
+        private void CAE_Unchecked(object sender, RoutedEventArgs e)
+        {
+            mainGrid.Background = new SolidColorBrush(System.Windows.Media.Colors.Red);
+        }
     }
 }
