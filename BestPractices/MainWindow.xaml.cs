@@ -212,57 +212,6 @@ namespace BestPractices
             }
         }
 
-        private async Task<string> GetAccessTokenWithClaimChallenge(string [] scopes, string claimChallenge)
-        {
-            var accounts = await _clientApp.GetAccountsAsync();
-            var firstAccount = accounts.FirstOrDefault();
-            AuthenticationResult authResult = null;
-            try
-            {
-                authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
-                        .WithClaims(claimChallenge)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
-            }
-            catch (MsalUiRequiredException)
-            {
-                try
-                {
-                    authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                        .WithClaims(claimChallenge)
-                        .WithAccount(firstAccount)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
-                }
-                catch (MsalException msalex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Error Acquiring Token: " + msalex.Message);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-                return null;
-            }
-
-            if (null != authResult)
-            {
-                await Dispatcher.BeginInvoke((Action)(() =>
-                {
-                    DisplayIDToken(authResult);
-                    DisplayBasicTokenResponseInfo(authResult);
-                    LogText.Text = sbLog.ToString();
-                }));
-
-                return authResult.AccessToken;
-            }
-            else
-            {
-                return null;
-            }
-            return null;
-        }
-
         /// <summary>
         /// Perform an HTTP GET request to a URL using an HTTP Authorization header
         /// </summary>

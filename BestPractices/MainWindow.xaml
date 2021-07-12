@@ -74,22 +74,22 @@
             <TabControl x:Name="Tabs" Height="670">
                 <TabItem Header="ID Token Claims " FontFamily="Segoe Ui" FontSize="30">
                     <StackPanel>
-                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  Height="600"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0"/>
+                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  Height="600"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
                    </StackPanel>
                 </TabItem>
                 <TabItem Header="Token Response " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  BorderThickness="0"/>
+                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Results " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Log " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="LogText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="LogText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
             </TabControl>
