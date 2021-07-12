@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Interop;
 
-namespace active_directory_wpf_msgraph_v2
+namespace BestPractices
 {
     public class MaxHeightConverter : IValueConverter
     {

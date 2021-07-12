@@ -1,41 +1,46 @@
-﻿<Window x:Class="active_directory_wpf_msgraph_v2.MainWindow"
+﻿<Window x:Class="BestPractices.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:active_directory_wpf_msgraph_v2"
+        xmlns:local="clr-namespace:BestPractices"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Microsoft Identity Platform Best Practices" 
-        WindowStartupLocation="CenterScreen" WindowState="Maximized">
+        WindowStartupLocation="CenterScreen" 
+        Height="1050"
+        Width="1600">
 
-    <Window.Resources>
-        <ResourceDictionary>
-            <local:MaxHeightConverter x:Key="MaxHeightConverter"/>
-            <sys:Double x:Key="adjMaxTabHeightRatio">0.99</sys:Double>
-            <sys:Double x:Key="adjMaxPanelHeightRatio">0.89</sys:Double>
-        </ResourceDictionary>
-    </Window.Resources>
-
-    <Grid Background="Azure">
+    <Grid x:Name="mainGrid" Background="Azure">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="20">
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5,5,0,5">
                 <Label Content="Account Type" HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
                 <ComboBox x:Name="Authority" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Authority_SelectionChanged" >
                     <ComboBoxItem Content="All Users" Tag="Common" IsSelected="True"/>
                     <ComboBoxItem Content="Consumers" Tag="Consumers"/>
                     <ComboBoxItem Content="Organizations" Tag="Organizations"/>
                     <ComboBoxItem Content="This Tenant" Tag="c72a295d-d7a5-41ea-a351-b15dd9f67215"/>
+                    <ComboBoxItem Content="That Tenant" Tag="cccc930d-c57e-4948-8d61-cd86afc7be46"/>
                 </ComboBox>
-                <TextBox x:Name="AccountType" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="30"></TextBox>
+                <TextBox x:Name="AccountType" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="30"/>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                <Label Content="Account"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
+                <ComboBox x:Name="Accounts" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="30">
+                    <ComboBoxItem Content="Windows user" Tag="Windows user" IsSelected="True"/>
+                    <ComboBoxItem Content="Windows known users" Tag="Windows known users" />
+                    <ComboBoxItem Content="Any Microsoft Identity" Tag="Any Microsoft Identity"/>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                 <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
                 <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Scopes_SelectionChanged">
                     <ComboBoxItem Content="Static Consent" Tag="829f3a28-9104-45e7-a180-a319312bd8c5/.default"/>
@@ -43,10 +48,19 @@
                     <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
                     <ComboBoxItem Content="Everything" Tag="user.read people.read group.read.all"/>
                 </ComboBox>
-                <TextBox x:Name="SignInScope" Text="user.read" Margin="15,5,0,5"  FontFamily="Segoe Ui" FontSize ="30" ></TextBox>
+                <TextBox x:Name="SignInScope" Text="user.read" Margin="5,5,0,5"  FontFamily="Segoe Ui" FontSize ="30" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                <TextBox Margin="5,5,0,5" FontFamily="Segoe Ui" FontSize ="30" Text="Use Continous Access Evaulation"/>
+                <CheckBox x:Name="CAE" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" IsChecked="True" Checked="CheckBox_Checked" Unchecked="CAE_Unchecked">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="2" ScaleY="2" />
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                 <Button x:Name="SignIn" Content="Sign In" HorizontalAlignment="Right" Padding="5" Click="SignInButton_Click" Margin="10,5,0,5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallProfileButton" Content="Profile" HorizontalAlignment="Right" Padding="5" Click="CallProfileButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallPeopleButton" Content="People" HorizontalAlignment="Right" Padding="5" Click="CallPeopleButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
@@ -56,20 +70,25 @@
         </StackPanel>
 
         <StackPanel x:Name="Output" Grid.Row="1">
-            <TabControl x:Name="Tabs" MaxHeight="{Binding ElementName=Output, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxTabHeightRatio}}">
+            <TabControl x:Name="Tabs" Height="670">
                 <TabItem Header="ID Token Claims " FontFamily="Segoe Ui" FontSize="30">
                     <StackPanel>
-                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxPanelHeightRatio}}"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0"/>
+                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  Height="600"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Token Response " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxPanelHeightRatio}}" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  BorderThickness="0"/>
+                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="Results " FontFamily="Segoe Ui" FontSize="30" >
                     <StackPanel>
-                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" MaxHeight="{Binding ElementName=Tabs, Path=ActualHeight, Converter={StaticResource MaxHeightConverter}, ConverterParameter={StaticResource adjMaxPanelHeightRatio}}" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Log " FontFamily="Segoe Ui" FontSize="30" >
+                    <StackPanel>
+                        <TextBox x:Name="LogText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
             </TabControl>

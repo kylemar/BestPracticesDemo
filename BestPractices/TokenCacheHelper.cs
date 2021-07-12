@@ -30,7 +30,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Microsoft.Identity.Client;
 
-namespace active_directory_wpf_msgraph_v2
+namespace BestPractices
 {
     static class TokenCacheHelper
     {
@@ -45,11 +45,19 @@ namespace active_directory_wpf_msgraph_v2
         {
             lock (FileLock)
             {
-                args.TokenCache.DeserializeMsalV3(File.Exists(CacheFilePath)
-                        ? ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath),
-                                                 null,
-                                                 DataProtectionScope.CurrentUser)
-                        : null);
+                try
+                {
+                    args.TokenCache.DeserializeMsalV3(File.Exists(CacheFilePath)
+                            ? ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath),
+                                                     null,
+                                                     DataProtectionScope.CurrentUser)
+                            : null);
+                }
+                catch
+                {
+                    File.Delete(CacheFilePath);
+                    args.TokenCache.DeserializeMsalV3(null);
+                }
             }
         }
 
