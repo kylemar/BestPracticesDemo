@@ -29,7 +29,7 @@
                     <ComboBoxItem Content="This Tenant" Tag="c72a295d-d7a5-41ea-a351-b15dd9f67215"/>
                     <ComboBoxItem Content="That Tenant" Tag="cccc930d-c57e-4948-8d61-cd86afc7be46"/>
                 </ComboBox>
-                <TextBox x:Name="AccountType" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="30"/>
+                <TextBox x:Name="AccountType" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="30" Width="1065"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
@@ -44,7 +44,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                 <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
                 <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Scopes_SelectionChanged">
-                    <ComboBoxItem Content="Static Consent" Tag="829f3a28-9104-45e7-a180-a319312bd8c5/.default"/>
+                    <ComboBoxItem Content="Static Consent" Tag="f8a9ff7f-847b-4823-88bf-d2c9061330f7/.default"/>
                     <ComboBoxItem Content="Just Profile" Tag="user.read" IsSelected="True"/>
                     <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
                     <ComboBoxItem Content="Everything" Tag="user.read people.read group.read.all"/>

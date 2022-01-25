@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Windows.UI;
 
-
 namespace BestPractices
 {
     /// <summary>
@@ -25,6 +25,9 @@ namespace BestPractices
     /// </summary>
     public partial class MainWindow : Window
     {
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetActiveWindow();
+
         public IPublicClientApplication _clientApp = null;
         StringBuilder sbLog = new StringBuilder();
 
@@ -163,7 +166,7 @@ namespace BestPractices
                     break;
             }
 
-        AuthenticationResult authResult = null;
+            AuthenticationResult authResult = null;
             try
             {
                 authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
@@ -176,19 +179,23 @@ namespace BestPractices
                 // This indicates you need to call AcquireTokenInteractive to acquire a token
                 sbLog.AppendLine($"MsalUiRequiredException: {ex.Message}");
 
-                try
-                {
-                    authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                        .WithClaims(ex.Claims)
-                        .WithAccount(firstAccount)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
-                }
-                catch (MsalException msalex)
-                {
-                    sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
-                    return null;
-                }
+                    await Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            authResult = await _clientApp.AcquireTokenInteractive(scopes)
+                            .WithClaims(ex.Claims)
+                            .WithParentActivityOrWindow(new WindowInteropHelper(this).Handle)
+                            .WithAccount(firstAccount)
+                            .ExecuteAsync()
+                            .ConfigureAwait(false);
+                        }
+                        catch (MsalException msalex)
+                        {
+                            sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
+                            authResult = null;
+                        }
+                    }));
             }
             catch (Exception ex)
             {
@@ -307,18 +314,22 @@ namespace BestPractices
             }
             catch (MsalUiRequiredException)
             {
-                try
-                {
-                    authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                        .WithClaims(claimChallenge)
-                        .WithAccount(firstAccount)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
-                }
-                catch (MsalException msalex)
-                {
-                    sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
-                }
+                    await Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            authResult = await _clientApp.AcquireTokenInteractive(scopes)
+                            .WithClaims(claimChallenge)
+                            .WithAccount(firstAccount)
+                            .WithParentActivityOrWindow(new WindowInteropHelper(this).Handle)
+                            .ExecuteAsync()
+                            .ConfigureAwait(false);
+                        }
+                        catch (MsalException msalex)
+                        {
+                            sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
+                        }
+                    }));
             }
             catch (Exception ex)
             {
@@ -366,11 +377,14 @@ namespace BestPractices
             TokenResponseText.Text = "";
             if (authResult != null)
             {
-                TokenResponseText.Text += $"User name: {authResult.Account.Username}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id Identifier: {authResult.Account.HomeAccountId.Identifier}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id ObjectId: {authResult.Account.HomeAccountId.ObjectId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id TenantId: {authResult.Account.HomeAccountId.TenantId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Environment: {authResult.Account.Environment}" + Environment.NewLine;
+                sbLog.AppendLine("---------------------------------------------------------");
+                sbLog.AppendLine(string.Format($"Token Response: {DateTime.Now.ToString()}"));
+                sbLog.AppendLine(string.Format($"Correlation Id: {authResult.CorrelationId}"));
+                sbLog.AppendLine("---------------------------------------------------------");
+                sbLog.AppendLine(authResult.AccessToken);
+                sbLog.AppendLine("---------------------------------------------------------");
+                sbLog.AppendLine(authResult.IdToken);
+                sbLog.AppendLine("---------------------------------------------------------");
 
                 TokenResponseText.Text += $"Token Scopes:" + Environment.NewLine;
                 foreach (var scope in authResult.Scopes)
@@ -380,15 +394,20 @@ namespace BestPractices
 
                 TokenResponseText.Text += $"Token Expires: {authResult.ExpiresOn.ToLocalTime()}" + Environment.NewLine;
                 TokenResponseText.Text += $"Is Extended LifeTime Token: {authResult.IsExtendedLifeTimeToken.ToString()}" + Environment.NewLine;
-
                 if (authResult.IsExtendedLifeTimeToken)
                 {
                     TokenResponseText.Text += $"Extended Expires On: {authResult.ExtendedExpiresOn.ToLocalTime()}" + Environment.NewLine;
                 }
-
-                TokenResponseText.Text += $"Correlation Id: {authResult.CorrelationId}" + Environment.NewLine;
                 TokenResponseText.Text += $"Tenant Id: {authResult.TenantId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Unique Id: {authResult.UniqueId}";
+                TokenResponseText.Text += $"Unique Id: {authResult.UniqueId}" + Environment.NewLine;
+
+                TokenResponseText.Text += $"User name: {authResult.Account.Username}" + Environment.NewLine;
+                TokenResponseText.Text += $"Home Account Id Identifier: {authResult.Account.HomeAccountId.Identifier}" + Environment.NewLine;
+                TokenResponseText.Text += $"Home Account Id ObjectId: {authResult.Account.HomeAccountId.ObjectId}" + Environment.NewLine;
+                TokenResponseText.Text += $"Home Account Id TenantId: {authResult.Account.HomeAccountId.TenantId}" + Environment.NewLine;
+                TokenResponseText.Text += $"Environment: {authResult.Account.Environment}" + Environment.NewLine;
+
+                TokenResponseText.Text += $"Correlation Id: {authResult.CorrelationId}";
             }
         }
 
