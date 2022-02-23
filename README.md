@@ -4,7 +4,7 @@
 
 ### Scope of this demo
 
-In this demo, you will learn, how to implement CAE feature in the client application via MSAL.NET library. This is a WPF application which is making call to the GRAPH API. 
+In this demo, you will learn, how to implement Continous Access Evaluation (CAE) in a client application via the MSAL.NET library. This is a WPF application that is making calls to the Microsoft Graph API. 
 
 ### Details of the demo – How it works 
 
@@ -31,58 +31,56 @@ or download and extract the repository .zip file.
 
 #### Step 2: Open the project in Visual studio and run it. 
 
-Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. The following window should appear and select the highlighted(Different colors) options in the popup.
+Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. The following window should appear. Select the highlighted(Different colors) options in the popup.
 
  ![Screenshot](Images/1.png)
  
  
 #### Step 3: Initiate authetication from the app.
 
-Click on the Sign-in button which should bring the authentication page as below.
+Click on the Sign-in button which should bring the authentication page similar to the image below.
 
  ![Screenshot](Images/2.png)
  
 
 #### Step 4: Consent the app
 
-Select the user against which you want to make the API call. If you are using the app for the first time, then it would ask the consent as below. Click on Accept button.
+Select the user who is signing into the app. If you are using the app for the first time, you will be asked to consent as below. Click on Accept button.
 
  ![Screenshot](Images/3.png)
  
-#### Step 5: Inspect thge claims
+#### Step 5: Inspect the claims
 
-Now on the main window click on the profile button and it should show the claim as below
+Now on the main window click on the profile button and it should show the ID token claims as below
 
  ![Screenshot](Images/4.png)
  
-#### Step 6: Verify the token validity
+#### Step 6: Observe the token lifetime
 
-Click on Token response button and observe the “Token expires” value. It will be valid for 24 hours unlike normal scenario where access token is valid only for 60 minutes. 
+Click on Token response button and observe the “Token expires” value. It will be valid for 23-28 hours. This is unlike for an app that does not support CAE where the access token is valid for 60-90 minutes. 
 
- ![Screenshot](Images/5.png)
+ ![Screenshot](Images/6.png)
 
 #### Step 7: Invalidate the user session 
 
-Now visit Azure portal and select the user with against which you have signed into the app. Then revoke the existing session.  
+Now visit Azure portal and select the user with against which you have signed into the app. Then revoke the user's sessions.   
 
- ![Screenshot](Images/6.png)
+ ![Screenshot](Images/5.png)
+
  
- #### Step 8: Observe how CAE feature kick-in
+ #### Step 8: Observe the CAE feature in action
  
- Wait for 10 minutes and click on the profile button again. Since CAE is enabled, it will ask the user to enter the credential again. 
+ Wait for 10 minutes and click on the profile button again. Since CAE is enabled, it will ask the user to authenticate again. 
  
  ### Code – How it works
  
- From the code perspective application is connecting to graph API. If the CAE checkbox is enabled, then application is updating the below code to enable the feature.
+ From the code perspective, the application is calling the Microsoft Graph API. The following line informs Azure AD that the application supports CAE.  
  
    ```csharp
-            if (true==CAE.IsChecked)
-            {
-                builder.WithClientCapabilities(new[] { "cp1" });
-            }
+            builder.WithClientCapabilities(new[] { "cp1" });
   ```
 
-After revoking the session in the Azure portal, when you click on the profile button, the access token gets invalidated. The below code is handling the scenario.
+The app can inform Azure AD that it supports CAE since it handles CAE Claim Challenges from the Microsoft Graph API. After revoking the session in the Azure portal, when you click on the profile button, the access token will no longer be sufficient to access the user's profile in Microsoft Graph. The below code is handling the scenario.
 
 APIrequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 APIresponse = await httpClient.SendAsync(APIrequest);
@@ -115,8 +113,7 @@ APIrequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHea
                                 var ClaimChallenge = System.Text.Encoding.UTF8.GetString(
                                     claimChallengebase64Bytes);
 
-                                var newAccessToken = await GetAccessTokenWithClaimChallenge(
-                                    scopes, ClaimChallenge);
+                                var newAccessToken = await GetAccessToken(scopes, ClaimChallenge);
                                 if (null != newAccessToken)
                                 {
                                     var APIrequestAfterCAE = new HttpRequestMessage(
