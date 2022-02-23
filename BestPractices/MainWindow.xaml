@@ -52,15 +52,6 @@
                 <TextBox x:Name="SignInScope" Text="user.read" Margin="5,5,0,5"  FontFamily="Segoe Ui" FontSize ="30" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
-                <TextBox Margin="5,5,0,5" FontFamily="Segoe Ui" FontSize ="30" Text="Use Continous Access Evaulation"/>
-                <CheckBox x:Name="CAE" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" IsChecked="True" Checked="CheckBox_Checked" Unchecked="CAE_Unchecked">
-                    <CheckBox.LayoutTransform>
-                        <ScaleTransform ScaleX="2" ScaleY="2" />
-                    </CheckBox.LayoutTransform>
-                </CheckBox>
-            </StackPanel>
-
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                 <Button x:Name="SignIn" Content="Sign In" HorizontalAlignment="Right" Padding="5" Click="SignInButton_Click" Margin="10,5,0,5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallProfileButton" Content="Profile" HorizontalAlignment="Right" Padding="5" Click="CallProfileButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />

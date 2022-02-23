@@ -2,21 +2,16 @@
 using Microsoft.Identity.Client.Desktop;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Windows.UI;
 
 namespace BestPractices
 {
@@ -30,6 +25,9 @@ namespace BestPractices
 
         public IPublicClientApplication _clientApp = null;
         StringBuilder sbLog = new StringBuilder();
+        StringBuilder sbIdTokenClaims = new StringBuilder();
+        StringBuilder sbResponse = new StringBuilder();
+        StringBuilder sbResults = new StringBuilder();
 
         public MainWindow()
         {
@@ -65,10 +63,7 @@ namespace BestPractices
             var builder = PublicClientApplicationBuilder.Create(App.ClientId)
                 .WithAuthority(AzureCloudInstance.AzurePublic, authority.Tag as String);
 
-            if (true==CAE.IsChecked)
-            {
-                builder.WithClientCapabilities(new[] { "cp1" });
-            }
+            builder.WithClientCapabilities(new[] { "cp1" });
 
             ComboBoxItem account = Accounts.SelectedItem as ComboBoxItem;
             var accountType = account.Tag as string;
@@ -89,8 +84,9 @@ namespace BestPractices
             ComboBoxItem scopes = Scopes.SelectedItem as ComboBoxItem;
             var ScopesString = scopes.Tag as String;
             string[] scopesRequest = ScopesString.Split(' ');
-            ResultText.Text = await AuthAndCallAPI(null, scopesRequest);
-            LogText.Text = sbLog.ToString();
+            await AuthAndCallAPI(null, scopesRequest);
+
+            UpdateScreen();
         }
 
         /// <summary>
@@ -104,8 +100,9 @@ namespace BestPractices
             //Set the scope for API call to user.read
             string[] scopes = new string[] { "user.read" };
 
-            ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
-            LogText.Text = sbLog.ToString();
+            await AuthAndCallAPI(graphAPIEndpoint, scopes);
+
+            UpdateScreen();
         }
 
         private async void CallPeopleButton_Click(object sender, RoutedEventArgs e)
@@ -115,8 +112,9 @@ namespace BestPractices
 
             string[] scopes = new string[] { "people.read" };
 
-            ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
-            LogText.Text = sbLog.ToString();
+            await AuthAndCallAPI(graphAPIEndpoint, scopes);
+
+            UpdateScreen();
         }
 
         private async void CallGroupsButton_Click(object sender, RoutedEventArgs e)
@@ -125,51 +123,61 @@ namespace BestPractices
             string graphAPIEndpoint = "https://graph.microsoft.com/v1.0/groups";
             string[] scopes = new string[] { "group.read.all" };
 
-            ResultText.Text = await AuthAndCallAPI(graphAPIEndpoint, scopes);
-            LogText.Text = sbLog.ToString();
+            await AuthAndCallAPI(graphAPIEndpoint, scopes);
+
+            UpdateScreen();
         }
 
-        private async Task<string> AuthAndCallAPI(string APIEndpoint, string [] scopes)
+        private async Task AuthAndCallAPI(string APIEndpoint, string [] scopes)
         {
-            ResultText.Text = string.Empty;
-            TokenResponseText.Text = string.Empty;
-            IDToken.Text = string.Empty;
+            sbResults.Clear();
+            sbResponse.Clear(); 
+            sbIdTokenClaims.Clear();
 
             var accessToken = await GetAccessToken(scopes);
             if (null != accessToken)
             {
                 if (!string.IsNullOrEmpty(APIEndpoint))
                 {
-                    return await GetHttpContentWithToken(APIEndpoint, accessToken, scopes);
+                    var results = await GetHttpContentWithToken(APIEndpoint, accessToken, scopes);
+                    sbResults.Append(results);
                 }
             }
-            return null;
+            return;
         }
 
-        private async Task<string> GetAccessToken(string[] scopes)
+        private async Task<string> GetAccessToken(string[] scopes, string claimsChallenge = null )
         {
             IAccount firstAccount;
 
-            switch (Accounts.SelectedIndex)
+            var accounts = await _clientApp.GetAccountsAsync();
+            if (accounts.Any())
             {
-                case 0:
-                    firstAccount = PublicClientApplication.OperatingSystemAccount;
-                    break;
+                firstAccount = accounts.FirstOrDefault();
+            }
+            else
+            {
+                switch (Accounts.SelectedIndex)
+                {
+                    case 0:
+                        firstAccount = PublicClientApplication.OperatingSystemAccount;
+                        break;
 
-                case 1:
-                    firstAccount = null;
-                    break;
+                    case 1:
+                        firstAccount = null;
+                        break;
 
-                default:
-                    var accounts = await _clientApp.GetAccountsAsync();
-                    firstAccount = accounts.FirstOrDefault();
-                    break;
+                    default:
+                        firstAccount = accounts.FirstOrDefault();
+                        break;
+                }
             }
 
             AuthenticationResult authResult = null;
             try
             {
                 authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
+                    .WithClaims(claimsChallenge)
                     .ExecuteAsync()
                     .ConfigureAwait(false);
             }
@@ -179,23 +187,23 @@ namespace BestPractices
                 // This indicates you need to call AcquireTokenInteractive to acquire a token
                 sbLog.AppendLine($"MsalUiRequiredException: {ex.Message}");
 
-                    await Dispatcher.BeginInvoke((Action)(async () =>
-                    {
-                        try
-                        {
-                            authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                            .WithClaims(ex.Claims)
-                            .WithParentActivityOrWindow(new WindowInteropHelper(this).Handle)
-                            .WithAccount(firstAccount)
-                            .ExecuteAsync()
-                            .ConfigureAwait(false);
-                        }
-                        catch (MsalException msalex)
-                        {
-                            sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
-                            authResult = null;
-                        }
-                    }));
+                try
+                {
+                    authResult = await _clientApp.AcquireTokenInteractive(scopes)
+                    .WithClaims(claimsChallenge == null ? claimsChallenge : ex.Claims)
+                    .WithParentActivityOrWindow(GetActiveWindow())
+                    .WithAccount(firstAccount)
+                    .ExecuteAsync()
+                    .ConfigureAwait(false);
+
+                    ParseIDTokenClaims(authResult);
+                    ParseTokenResponseInfo(authResult);
+                }
+                catch (MsalException msalex)
+                {
+                    sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
+                    authResult = null;
+                }
             }
             catch (Exception ex)
             {
@@ -205,12 +213,8 @@ namespace BestPractices
 
             if (null != authResult)
             {
-                await Dispatcher.BeginInvoke((Action)( () =>
-                {
-                    DisplayIDToken(authResult);
-                    DisplayBasicTokenResponseInfo(authResult);
-                }));
-
+                ParseIDTokenClaims(authResult);
+                ParseTokenResponseInfo(authResult);
                 return authResult.AccessToken;
             }
             else
@@ -263,8 +267,7 @@ namespace BestPractices
                                 var ClaimChallenge = System.Text.Encoding.UTF8.GetString(
                                     claimChallengebase64Bytes);
 
-                                var newAccessToken = await GetAccessTokenWithClaimChallenge(
-                                    scopes, ClaimChallenge);
+                                var newAccessToken = await GetAccessToken(scopes, ClaimChallenge);
                                 if (null != newAccessToken)
                                 {
                                     var APIrequestAfterCAE = new HttpRequestMessage(
@@ -299,51 +302,6 @@ namespace BestPractices
             }
         }
 
-        private async Task<string> GetAccessTokenWithClaimChallenge(string[] scopes, 
-            string claimChallenge)
-        {
-            var accounts = await _clientApp.GetAccountsAsync();
-            var firstAccount = accounts.FirstOrDefault();
-            AuthenticationResult authResult = null;
-            try
-            {
-                authResult = await _clientApp.AcquireTokenSilent(scopes, firstAccount)
-                        .WithClaims(claimChallenge)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
-            }
-            catch (MsalUiRequiredException)
-            {
-                    await Dispatcher.BeginInvoke((Action)(async () =>
-                    {
-                        try
-                        {
-                            authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                            .WithClaims(claimChallenge)
-                            .WithAccount(firstAccount)
-                            .WithParentActivityOrWindow(new WindowInteropHelper(this).Handle)
-                            .ExecuteAsync()
-                            .ConfigureAwait(false);
-                        }
-                        catch (MsalException msalex)
-                        {
-                            sbLog.AppendLine("Error Acquiring Token: " + msalex.Message);
-                        }
-                    }));
-            }
-            catch (Exception ex)
-            {
-                sbLog.AppendLine(ex.Message);
-                return null;
-            }
-
-            if (authResult != null)
-            {
-                return authResult.AccessToken;
-            }
-            return null;
-        }
-
         /// <summary>
         /// Sign out the current user
         /// </summary>
@@ -372,64 +330,53 @@ namespace BestPractices
         /// <summary>
         /// Display basic information contained in the token response
         /// </summary>
-        private void DisplayBasicTokenResponseInfo(AuthenticationResult authResult)
+        private void ParseTokenResponseInfo(AuthenticationResult authResult)
         {
-            TokenResponseText.Text = "";
+            sbResponse.Clear();
             if (authResult != null)
             {
-                sbLog.AppendLine("---------------------------------------------------------");
-                sbLog.AppendLine(string.Format($"Token Response: {DateTime.Now.ToString()}"));
-                sbLog.AppendLine(string.Format($"Correlation Id: {authResult.CorrelationId}"));
-                sbLog.AppendLine("---------------------------------------------------------");
-                sbLog.AppendLine(authResult.AccessToken);
-                sbLog.AppendLine("---------------------------------------------------------");
-                sbLog.AppendLine(authResult.IdToken);
+                sbLog.AppendLine($"Token Response: {DateTime.Now.ToString()}");
+                sbLog.AppendLine($"Correlation Id: {authResult.CorrelationId}");
                 sbLog.AppendLine("---------------------------------------------------------");
 
-                TokenResponseText.Text += $"Token Scopes:" + Environment.NewLine;
+
+                sbResponse.AppendLine("Token Scopes:");
                 foreach (var scope in authResult.Scopes)
                 {
-                    TokenResponseText.Text += $"\t " + scope + Environment.NewLine;
+                    sbResponse.AppendLine($"\t {scope}");
                 }
 
-                TokenResponseText.Text += $"Token Expires: {authResult.ExpiresOn.ToLocalTime()}" + Environment.NewLine;
-                TokenResponseText.Text += $"Is Extended LifeTime Token: {authResult.IsExtendedLifeTimeToken.ToString()}" + Environment.NewLine;
-                if (authResult.IsExtendedLifeTimeToken)
-                {
-                    TokenResponseText.Text += $"Extended Expires On: {authResult.ExtendedExpiresOn.ToLocalTime()}" + Environment.NewLine;
-                }
-                TokenResponseText.Text += $"Tenant Id: {authResult.TenantId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Unique Id: {authResult.UniqueId}" + Environment.NewLine;
+                sbResponse.AppendLine($"Token Expires: {authResult.ExpiresOn.ToLocalTime()}");
+                sbResponse.AppendLine($"Refresh On: {authResult.AuthenticationResultMetadata.RefreshOn}");
+                sbResponse.AppendLine($"CacheRefreshReason: {authResult.AuthenticationResultMetadata.CacheRefreshReason}");
+                sbResponse.AppendLine($"Cache time: {authResult.AuthenticationResultMetadata.DurationInCacheInMs}");
+                sbResponse.AppendLine($"HTTP time: {authResult.AuthenticationResultMetadata.DurationInHttpInMs}");
+                sbResponse.AppendLine($"Total time: {authResult.AuthenticationResultMetadata.DurationTotalInMs}");
 
-                TokenResponseText.Text += $"User name: {authResult.Account.Username}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id Identifier: {authResult.Account.HomeAccountId.Identifier}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id ObjectId: {authResult.Account.HomeAccountId.ObjectId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Home Account Id TenantId: {authResult.Account.HomeAccountId.TenantId}" + Environment.NewLine;
-                TokenResponseText.Text += $"Environment: {authResult.Account.Environment}" + Environment.NewLine;
+                sbResponse.AppendLine($"");
+                sbResponse.AppendLine($"Correlation Id: {authResult.CorrelationId}");
 
-                TokenResponseText.Text += $"Correlation Id: {authResult.CorrelationId}";
+                sbResponse.AppendLine($"");
+                sbResponse.AppendLine($"Tenant Id: {authResult.TenantId}");
+                sbResponse.AppendLine($"Unique Id: {authResult.UniqueId}");
+
+                sbResponse.AppendLine($"");
+                sbResponse.AppendLine($"User name: {authResult.Account.Username}");
+                sbResponse.AppendLine($"Home Account Id Identifier: {authResult.Account.HomeAccountId.Identifier}");
+                sbResponse.AppendLine($"Home Account Id ObjectId: {authResult.Account.HomeAccountId.ObjectId}");
+                sbResponse.AppendLine($"Home Account Id TenantId: {authResult.Account.HomeAccountId.TenantId}");
+                sbResponse.AppendLine($"Environment: {authResult.Account.Environment}");
+
             }
         }
 
-        private void DisplayIDToken(AuthenticationResult authResult)
+        private void ParseIDTokenClaims(AuthenticationResult authResult)
         {
-            IDToken.Text = string.Empty;
+            sbIdTokenClaims.Clear();
 
-            var idtokenHandler = new JwtSecurityTokenHandler();
-            if (authResult != null && !string.IsNullOrWhiteSpace(authResult.IdToken)
-                && idtokenHandler.CanReadToken(authResult.IdToken))
+            foreach ( var claim in authResult.ClaimsPrincipal.Claims)
             {
-                var idToken = idtokenHandler.ReadJwtToken(authResult.IdToken);
-                var claims = idToken.Claims;
-                int handled = 0;
-                foreach (var claim in claims)
-                {
-                    IDToken.Text += "\"" + claim.Type + "\": \"" + claim.Value + "\"";
-                    if (++handled < claims.Count())
-                    {
-                        IDToken.Text += Environment.NewLine;
-                    }
-                }
+                sbIdTokenClaims.AppendLine($"\"{claim.Type}\": \"{claim.Value}\"");
             }
         }
 
@@ -465,6 +412,14 @@ namespace BestPractices
         private void CAE_Unchecked(object sender, RoutedEventArgs e)
         {
             mainGrid.Background = new SolidColorBrush(System.Windows.Media.Colors.Red);
+        }
+
+        private void UpdateScreen()
+        {
+            ResultText.Text = sbResults.ToString();
+            IDToken.Text = sbIdTokenClaims.ToString();
+            TokenResponseText.Text = sbResponse.ToString();
+            LogText.Text = sbLog.ToString();
         }
     }
 }
