@@ -39,6 +39,7 @@ namespace BestPractices
         /// </summary>
         private async void SignInButton_Click(object sender, RoutedEventArgs e)
         {
+            ResultText.Text = "Working...";
             LogText.Text = String.Empty;
             sbLog.Clear();
 
@@ -94,6 +95,7 @@ namespace BestPractices
         /// </summary>
         private async void CallProfileButton_Click(object sender, RoutedEventArgs e)
         {
+            ResultText.Text = "Working...";
             //Set the API Endpoint to Graph 'me' endpoint
             string graphAPIEndpoint = "https://graph.microsoft.com/v1.0/me";
 
@@ -107,6 +109,7 @@ namespace BestPractices
 
         private async void CallPeopleButton_Click(object sender, RoutedEventArgs e)
         {
+            ResultText.Text = "Working...";
             //Set the API Endpoint to Graph 'People' endpoint
             string graphAPIEndpoint = "https://graph.microsoft.com/v1.0/me/People";
 
@@ -119,6 +122,7 @@ namespace BestPractices
 
         private async void CallGroupsButton_Click(object sender, RoutedEventArgs e)
         {
+            ResultText.Text = "Working...";
             //Set the API Endpoint to Graph 'Groups' endpoint
             string graphAPIEndpoint = "https://graph.microsoft.com/v1.0/groups";
             string[] scopes = new string[] { "group.read.all" };
@@ -190,7 +194,7 @@ namespace BestPractices
                 try
                 {
                     authResult = await _clientApp.AcquireTokenInteractive(scopes)
-                    .WithClaims(claimsChallenge == null ? claimsChallenge : ex.Claims)
+                    .WithClaims(claimsChallenge == null ? ex.Claims : claimsChallenge)
                     .WithParentActivityOrWindow(GetActiveWindow())
                     .WithAccount(firstAccount)
                     .ExecuteAsync()
@@ -313,7 +317,7 @@ namespace BestPractices
                 if (accounts.Any())
                 {
                     try
-                    {
+                    {                     
                         await _clientApp.RemoveAsync(accounts.FirstOrDefault());
                         this.ResultText.Text = accounts.FirstOrDefault().Username + " User has signed-out";
                         TokenResponseText.Text = string.Empty;
