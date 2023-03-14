@@ -43,17 +43,30 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                 <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
-                <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Scopes_SelectionChanged">
+                <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Scopes_SelectionChanged">
                     <ComboBoxItem Content="Static Consent" Tag="f8a9ff7f-847b-4823-88bf-d2c9061330f7/.default"/>
-                    <ComboBoxItem Content="Just Profile" Tag="user.read" IsSelected="True"/>
+                    <ComboBoxItem Content="Microsoft Graph Profile" Tag="user.read" IsSelected="True"/>
                     <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
+                    <ComboBoxItem Content="Sign In Only" Tag="openid"/>
                     <ComboBoxItem Content="Everything" Tag="user.read people.read group.read.all"/>
                 </ComboBox>
                 <TextBox x:Name="SignInScope" Text="user.read" Margin="5,5,0,5"  FontFamily="Segoe Ui" FontSize ="30" />
             </StackPanel>
 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="215,5,5,5" >
+                <Viewbox Height="{Binding Path=ActualHeight, ElementName=CheckBoxPanel}">
+                    <CheckBox x:Name="UseCAE" IsChecked="True">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="2" ScaleY="2" />
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+                </Viewbox>
+                <TextBlock Text="Use Continous Access Evaluation" FontFamily="Segoe Ui" FontSize ="30"/>
+            </StackPanel>
+            
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                 <Button x:Name="SignIn" Content="Sign In" HorizontalAlignment="Right" Padding="5" Click="SignInButton_Click" Margin="10,5,0,5" FontFamily="Segoe Ui" FontSize ="30" />
+                <Button x:Name="CallUserInfoButton" Content="OIDC UserInfo" HorizontalAlignment="Right" Padding="5" Click="CallUserInfoButton_Click"  Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallProfileButton" Content="Profile" HorizontalAlignment="Right" Padding="5" Click="CallProfileButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallPeopleButton" Content="People" HorizontalAlignment="Right" Padding="5" Click="CallPeopleButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
                 <Button x:Name="CallGroupsButton" Content="Groups" HorizontalAlignment="Right" Padding="5" Click="CallGroupsButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
