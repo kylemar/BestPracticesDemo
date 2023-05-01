@@ -15,6 +15,6 @@ namespace BestPractices
         // Below are the clientId (Application Id) of your app registration and the tenant information. 
         // You have to replace:
         // - the content of ClientID with the Application Id for your app registration
-        public static string ClientId = "f8a9ff7f-847b-4823-88bf-d2c9061330f7";
+        public static string ClientId = "acaf6ce9-81f0-462a-a93d-a314070738d3";
     }
 }

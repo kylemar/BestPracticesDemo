@@ -70,8 +70,8 @@ namespace BestPractices
                 {
                     // reflect changesgs in the persistent store
                     File.WriteAllBytes(CacheFilePath,
-                                       ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), 
-                                                             null, 
+                                       ProtectedData.Protect(args.TokenCache.SerializeMsalV3(),
+                                                             null,
                                                              DataProtectionScope.CurrentUser)
                                       );
                 }
@@ -82,6 +82,14 @@ namespace BestPractices
         {
             tokenCache.SetBeforeAccess(BeforeAccessNotification);
             tokenCache.SetAfterAccess(AfterAccessNotification);
+        }
+
+        public static void ClearCache()
+        {
+            lock (FileLock)
+            {
+                File.Delete(CacheFilePath);
+            }
         }
     }
 }

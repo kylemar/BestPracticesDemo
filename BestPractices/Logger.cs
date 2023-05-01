@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace BestPractices
 {
+    internal enum LogType
+    {
+        All,
+        Screen,
+        Console,
+        File
+    }
     /// <summary>
     /// Possibility the worlds most simple logger
     /// </summary>
@@ -22,17 +29,37 @@ namespace BestPractices
 
         public void Start()
         {
-            fileName = $"{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.log";
+            fileName = $"{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log";
         }
 
-        public void Log(string message)
+        public void Log(string message, LogType logType = LogType.All )
         {
             string messageToShow;
 
             messageToShow = $"{DateTime.Now}-{message}";
-            Console.WriteLine(messageToShow);
-            sblog.AppendLine(messageToShow);
-            File.AppendAllText(fileName, $"{messageToShow}\n");
+
+            if (logType == LogType.All || logType == LogType.Console)
+            {
+                Console.WriteLine(messageToShow);
+            }
+
+            if (logType == LogType.All || logType == LogType.Screen)
+            {
+                if (sblog.Length > 65536)
+                {
+                    sblog.Clear();
+                }
+                sblog.AppendLine(messageToShow);
+            }
+
+            if (logType == LogType.All || logType == LogType.File)
+            {
+                try
+                {
+                    File.AppendAllText(fileName, $"{messageToShow}\n");
+                }
+                catch { }
+            }
         }
     }
 }
