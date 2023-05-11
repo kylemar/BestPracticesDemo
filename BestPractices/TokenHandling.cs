@@ -12,6 +12,7 @@ namespace BestPractices
     {
         private DateTime issuedAt = DateTime.MinValue;
         private DateTime expiresAt = DateTime.MinValue;
+        private string expiresAtUnix = null;
 
         private async Task<string> GetToken(TokenType type, string[] scopes, string claimsChallenge = null, bool silent = false, bool forceRefresh = false)
         {
@@ -211,6 +212,7 @@ namespace BestPractices
                 string desc = "";
                 if (claim.Type == "exp")
                 {
+                    expiresAtUnix = claim.Value;
                     expiresAt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                     expiresAt = expiresAt.AddSeconds(Double.Parse(claim.Value)).ToLocalTime();
                     var msToWait = expiresAt.Subtract(DateTime.Now).TotalMilliseconds;

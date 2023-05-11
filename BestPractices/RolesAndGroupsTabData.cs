@@ -38,6 +38,24 @@ namespace BestPractices
             developer.IsMember = string.Empty;
             developer.Name = "App Developers";
             roleAndGroupMembership.Add(developer);
+
+            RoleAndGroupMemberInfo pink = new RoleAndGroupMemberInfo();
+            pink.ID = "32055622-bbfb-467b-8214-98b01e0967bf";
+            pink.IsMember = string.Empty;
+            pink.Name = "Pink group";
+            roleAndGroupMembership.Add(pink);
+
+            RoleAndGroupMemberInfo NestedDays = new RoleAndGroupMemberInfo();
+            NestedDays.ID = "b17b3ae9-67b6-43ef-8944-8b0e0c1b6cb3";
+            NestedDays.IsMember = string.Empty;
+            NestedDays.Name = "Nested Days group";
+            roleAndGroupMembership.Add(NestedDays);
+
+            RoleAndGroupMemberInfo Monday = new RoleAndGroupMemberInfo();
+            Monday.ID = "64b8ae64-f504-4853-b400-a217900fad56";
+            Monday.IsMember = string.Empty;
+            Monday.Name = "Monday group";
+            roleAndGroupMembership.Add(Monday);
         }
     }
 

@@ -27,16 +27,19 @@ namespace BestPractices
         private static readonly StringBuilder sbRoles = new StringBuilder();
 
         private readonly Logger logger = new Logger(sbLog);
-        private string IDTokenExpContent = "User not signed in.";
+        private string IDTokenExpContent = "\n\rUser not signed in.";
         private string AccessTokenExpContent = string.Empty;
         private bool usingBroker = false;
-        RolesAndGroupsTabData rolesAndGroupsData = new RolesAndGroupsTabData();
+        readonly RolesAndGroupsTabData rolesAndGroupsData = new RolesAndGroupsTabData();
         private bool groupAdmin = false;
 
         public MainWindow()
         {
             accessEvaluationTimer.Elapsed += AccessEvaluationFunction;
+            accessEvaluationTimer.Interval = 60000;
+
             InitializeComponent();
+            
             RolesAndGroupsLV.ItemsSource = rolesAndGroupsData.roleAndGroupMembership;
             UpdateScreen();
         }
@@ -74,7 +77,6 @@ namespace BestPractices
             {
                 builder.WithClientCapabilities(new[] { "cp1" });
             }
-            accessEvaluationTimer.Interval = 60000;
 
             ComboBoxItem account = Accounts.SelectedItem as ComboBoxItem;
             string accountType = account.Tag as string;
@@ -100,7 +102,7 @@ namespace BestPractices
             string[] scopesRequest = SignInScope.Text.Split(' ');
             try
             {
-                await GetToken(TokenType.ID, scopesRequest);
+                _ = await GetToken(TokenType.ID, scopesRequest);
                 await AccessEvaluationTask();
                 accessEvaluationTimer.Start();
             }
@@ -345,7 +347,7 @@ namespace BestPractices
                 else
                 {
                     issuedAt = DateTime.MinValue;
-                    IDTokenExpContent = "User not signed in.";
+                    IDTokenExpContent = "\n\rUser not signed in.";
                     AccessTokenExpContent = string.Empty;
                     accessEvaluationTimer.Stop();
                     Authority.IsEnabled = true;
@@ -380,26 +382,28 @@ namespace BestPractices
 
         private async void ClearTokens_Click(object sender, RoutedEventArgs e)
         {
-            var accounts = await MSALPublicClientApp.GetAccountsAsync();
-            while (accounts.Any())
+            if (MSALPublicClientApp != null)
             {
-                await MSALPublicClientApp.RemoveAsync(accounts.First());
-                accounts = await MSALPublicClientApp.GetAccountsAsync();
+                var accounts = await MSALPublicClientApp.GetAccountsAsync();
+                while (accounts.Any())
+                {
+                    await MSALPublicClientApp.RemoveAsync(accounts.First());
+                    accounts = await MSALPublicClientApp.GetAccountsAsync();
+                }
             }
-
             TokenCacheHelper.ClearCache();
         }
 
         private void AddRoleOrGroup_Click(object sender, RoutedEventArgs e)
         {
-            string[] scopes = new string[] { "user.read" };
-
-            if (Guid.TryParse(RoleOrGroup.Text, out Guid guidOutput) == true)
+            if (Guid.TryParse(RoleOrGroup.Text, out _))
             {
-                RoleAndGroupMemberInfo groupAdmin = new RoleAndGroupMemberInfo();
-                groupAdmin.ID = RoleOrGroup.Text;
-                groupAdmin.IsMember = "";
-                groupAdmin.Name = string.Empty;
+                RoleAndGroupMemberInfo groupAdmin = new RoleAndGroupMemberInfo
+                {
+                    ID = RoleOrGroup.Text,
+                    IsMember = "",
+                    Name = string.Empty
+                };
                 rolesAndGroupsData.roleAndGroupMembership.Add(groupAdmin);
 
                 RolesAndGroupsLV.Height = rolesAndGroupsData.roleAndGroupMembership.Count * 100;
@@ -418,6 +422,10 @@ namespace BestPractices
         private void AccessEval_Checked(object sender, RoutedEventArgs e)
         {
             doAccessEvaluation = true;
+            if (userIsSignedIn)
+            {
+                _ = AccessEvaluationTask();
+            }
         }
     }
 }

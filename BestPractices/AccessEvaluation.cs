@@ -15,17 +15,9 @@ namespace BestPractices
 
         private async Task AccessEvaluationTask()
         {
-            if (doAccessEvaluation == false)
-            {
-                return;
-            }
-
-            Stopwatch sw = Stopwatch.StartNew();
-            sbRoles.Clear();
-            accessEvaluationTimer.Stop();
-            logger.Log($"AccessEvaluation start");
             string message = null;
             string[] scopes = new string[] { "user.read" };
+            Stopwatch sw = Stopwatch.StartNew();
 
             try
             {
@@ -34,12 +26,15 @@ namespace BestPractices
                 List<AppRole> thisAppsAppRoles;
 
                 // Has the ID Token expired? If so, reauthenticate the user
+                // forceRefresh tells MSAL to get a new token. MSAL by default will cache the ID Token based on the Access Token's lifetime
+                // Using an NBF claims challenge forces the broker to acquire a new ID Token
                 if (expiresAt <= DateTime.Now)
                 {
                     logger.Log($"ReAuth user. ID Token expired at {expiresAt}");
                     try
                     {
-                        await GetToken(TokenType.ID, new string[] { "" }, silent: true, forceRefresh: true);
+                        await GetToken(TokenType.ID, new string[] { "" }, silent: true, forceRefresh: true, 
+                                       claimsChallenge: $"{{\"id_token\":{{\"nbf\":{{\"essential\":true, \"value\":\"{expiresAtUnix}\"}}}}}}");
                     }
                     catch (Exception ex)
                     {
@@ -50,14 +45,16 @@ namespace BestPractices
                     }
                 }
 
-                //
-                // Check for any roles that is app has defined (approles with an allowed member type of users and groups) that have been assigned to this user. 
-                // 
-                // First step, get the approles for this apps' service principal. This is the entitiy where the approle assignements are made. There is a service principal for this app in every tenant where a user has authenticated to the app
-                // Calls to the servicePrincipals endpoint are automatically authorized when an app requests it's own service principal. 
-                // We need the SP's ID to query for the approles assigned to this user for this app in this tenant. 
-                // While most apps will have hard-coded roles, this app will query for the approles for this SP and check if users must be assigned to the app in order to use the app. 
-                //
+                // Doing access evaluation with Microsoft Graph is optional 
+                if (doAccessEvaluation == false)
+                {
+                    return;
+                }
+
+
+                // We need the current Service Principal for this app so that we can query the Service Principal for assigned roles 
+                // the format of the call to /servicePrincipals below /servicePrincipals(appId='{App.ClientId}') allows us to access a Service Principal in a different tenant 
+                // this is needed since this is a multi-tenant app
                 if (ServicePrincipalID == string.Empty)
                 {
                     string SPsEndpoint = $"https://graph.microsoft.com/v1.0/servicePrincipals(appId='{App.ClientId}')?$select=id";
@@ -69,32 +66,50 @@ namespace BestPractices
                     }
                 }
 
+                logger.Log($"AccessEvaluation start");
+
+                // We are going to use Microsoft Graph to evaluate if the user should still have access to the app
+                // Doing this check with Microsoft Graph, instead of using claims in the ID Token means the evaulation is up to the moment accurate
+                // Claims in the ID Token could be up to 60 minutes out of date as MSAL will cache the token for it's lifetime
+                // 
+                // For all the calls to Microsoft Graph we need, only user.read is required. 
                 //
-                // Get the user's profile from Microsoft Graph. Check:
-                // has the user's account be deleted or disabled
-                // are the signIn or refresh session valid dates after the current ID Token was issued? 
-                // If these any of test fail, consider the user signed out.
-                // We should send the user to authenticate. 
+                // Checks
+                //      From the user's profile (/me):
+                //          Has the user's account been disabled or deleted?
+                //          Has our ID Token been issued before the time for signInSessionsValidFromDateTime,refreshTokensValidFromDateTime?
                 //
+                //      From the Service Principal for this app in this tenant
+                //          What are the approles for this app? Most of the time you will not need these but for this app, it lets us get the approle names 
+                //              getting approles names in real time allow the demo to work for app roles defined as the app runs. 
+                //          Is app assignment require for this app? 
+                //          Is the app disabled to sign in users? 
+                //          
+                //      From the user's app roles assignments for this Service Principal (this app)
+                //          If the Service Principal requires assignment and there no assigned roles, consider the user signed out. 
+                //          Gather, and display, the user's role assignments to this app. 
+                //
+                //      From the user's member objects
+                //          Get the list of Azure AD roles and groups for which the user is a member
+                //          which are on our list of Azure AD roles and groups for which we want to know if the user is a member 
+                //          If the user is assigned the Group Administrator role, 
+
                 StringBuilder batch = new StringBuilder();
                 batch.Append($"{{\"requests\":[");
                 batch.Append($"{{\"id\":\"1\",\"method\":\"GET\",\"url\":\"/me?$select=signInSessionsValidFromDateTime,refreshTokensValidFromDateTime,deletedDateTime,accountEnabled\"}},");
-                batch.Append($"{{\"id\":\"2\",\"method\":\"GET\",\"url\":\"/servicePrincipals(appId='{App.ClientId}')?$select=id,appRoles,appRoleAssignmentRequired,accountEnabled\",\"dependsOn\":[\"1\"]}},");
-                batch.Append($"{{\"id\":\"3\",\"method\":\"GET\",\"url\":\"/me/appRoleAssignments?$filter=resourceId eq {ServicePrincipalID}\",\"dependsOn\":[\"2\"]}}");
+                batch.Append($"{{\"id\":\"2\",\"method\":\"GET\",\"url\":\"/servicePrincipals(appId='{App.ClientId}')?$select=appRoles,appRoleAssignmentRequired,accountEnabled\"}},");
+                batch.Append($"{{\"id\":\"3\",\"method\":\"GET\",\"url\":\"/me/appRoleAssignments?$filter=resourceId eq {ServicePrincipalID}\"}}");
 
-                if (rolesAndGroupsData.roleAndGroupMembership.Count > 0)
+                batch.Append($",{{\"id\": \"4\",\"method\": \"POST\",\"url\":\"me/checkMemberObjects\",\"body\":{{\"ids\":[");
+                string delimeter = string.Empty;
+                foreach (RoleAndGroupMemberInfo roleOrGroup in rolesAndGroupsData.roleAndGroupMembership)
                 {
-                    string delimeter = string.Empty;
-                    batch.Append($",{{\"id\": \"4\",\"method\": \"POST\",\"url\":\"me/checkMemberObjects\",\"body\":{{\"ids\":[");
-                    foreach (RoleAndGroupMemberInfo roleOrGroup in rolesAndGroupsData.roleAndGroupMembership)
-                    {
-                        string groupstr = $"{delimeter}\"{roleOrGroup.ID}\"";
-                        batch.Append(groupstr);
-                        delimeter = ",";
-                    }
-                    batch.Append($"]}},\"headers\":{{\"Content-Type\":\"application/json\"}},\"dependsOn\":[\"3\"]}}");
-
+                    string groupstr = $"{delimeter}\"{roleOrGroup.ID}\"";
+                    batch.Append(groupstr);
+                    delimeter = ",";
                 }
+                batch.Append($"]}},\"headers\":{{\"Content-Type\":\"application/json\"}}}}");
+
                 batch.Append($"]}}");
                 string batchBody = batch.ToString();
 
@@ -164,6 +179,7 @@ namespace BestPractices
                                 break;
 
                             case "3":
+                                sbRoles.Clear();
                                 RoleResults roleResults = JsonSerializer.Deserialize<RoleResults>(bodyJSON);
                                 if (roleResults.value.Count == 0 && appRoleAssignmentRequired == true)
                                 {
@@ -236,7 +252,6 @@ namespace BestPractices
                         }
                     }
                 }
-                accessEvaluationTimer.Start();
             }
             catch (Exception ex)
             {

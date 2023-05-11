@@ -112,7 +112,7 @@
                                 <GridView x:Name="RolesAndGroupsGV" >
                                     <GridViewColumn Header="Azure AD Role or Group ID" DisplayMemberBinding="{Binding Path=ID}" Width="600" />
                                     <GridViewColumn Header=" Is a Member? " DisplayMemberBinding="{Binding Path=IsMember}" Width="210" />
-                                    <GridViewColumn Header="Azure AD built-in role" DisplayMemberBinding="{Binding Path=Name}" Width="600"/>
+                                    <GridViewColumn Header="Azure AD built-in role or Group" DisplayMemberBinding="{Binding Path=Name}" Width="600"/>
                                 </GridView>
                             </ListView.View>
                             
