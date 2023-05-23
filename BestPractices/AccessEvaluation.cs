@@ -48,6 +48,7 @@ namespace BestPractices
                 // Doing access evaluation with Microsoft Graph is optional 
                 if (doAccessEvaluation == false)
                 {
+                    UpdateScreen();
                     return;
                 }
 
