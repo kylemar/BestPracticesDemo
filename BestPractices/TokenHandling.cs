@@ -13,6 +13,7 @@ namespace BestPractices
         private DateTime issuedAt = DateTime.MinValue;
         private DateTime expiresAt = DateTime.MinValue;
         private string expiresAtUnix = null;
+        private string tenantID = string.Empty;
 
         private async Task<string> GetToken(TokenType type, string[] scopes, string claimsChallenge = null, bool silent = false, bool forceRefresh = false)
         {
@@ -127,15 +128,19 @@ namespace BestPractices
             {
                 ParseTokenResponseInfo(authResult);
 
+                // MSAL always adds the 'openid and profile' scope to every token request, so there will always be an ID Token 
+                // but we only want to look at the ID Token if it is the first one we get or if the scope is openid only
+                if (type == TokenType.ID || expiresAt == DateTime.MinValue)
+                {
+                    ParseIDTokenClaims(authResult);
+                }
+
                 if (type == TokenType.Access)
                 {
                     return authResult.AccessToken;
                 }
                 else
                 {
-                    // MSAL always adds the 'openid and profile' scope to every token request, so there will always be an ID Token 
-                    // but we only want to look at the ID Token if it is the first one we get or if the scope is openid only
-                    ParseIDTokenClaims(authResult);
                     return authResult.IdToken;
                 }
             }
@@ -206,6 +211,7 @@ namespace BestPractices
         {
             sbIDTokenClaims.Clear();
 
+            tenantID = authResult.TenantId;
             userIsSignedIn = true;
             foreach (var claim in authResult.ClaimsPrincipal.Claims)
             {
@@ -238,10 +244,6 @@ namespace BestPractices
                     {
                         issuedAt = claimDateTime.AddMinutes(5);
                     }
-                }
-                else if (claim.Type == "tid")
-                {
-                    logger.Log($"Tenant ID is:{claim.Value}");
                 }
                 sbIDTokenClaims.AppendLine($"\"{claim.Type}\": \"{claim.Value}\"{desc}");
             }

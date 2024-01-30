@@ -7,9 +7,10 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Microsoft Identity Platform Best Practices" 
-        WindowStartupLocation="CenterScreen" 
-        Height="1050"
-        Width="1900">
+        WindowStartupLocation="CenterScreen"
+        Width="1920"
+        Height="1010"
+        >
 
     <Grid x:Name="mainGrid" Background="Azure">
 
@@ -21,91 +22,104 @@
         <StackPanel Grid.Row="0">
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5,5,0,5">
-                <Label Content="Authority" HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
-                <ComboBox x:Name="Authority" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Authority_SelectionChanged" >
+                <Label Content="Authority" HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="25"/>
+                <ComboBox x:Name="Authority" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="250" FontFamily="Segoe Ui" FontSize ="25" SelectionChanged="Authority_SelectionChanged" >
                     <ComboBoxItem Content="All Users" Tag="Common" IsSelected="True"/>
                     <ComboBoxItem Content="Consumers" Tag="Consumers"/>
                     <ComboBoxItem Content="Organizations" Tag="Organizations"/>
                     <ComboBoxItem Content="This Tenant" Tag="833ced3d-cb2e-41de-92f1-29e2af035ddc"/>
                 </ComboBox>
-                <TextBox x:Name="AuthorityAddress" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="30" Width="1065"/>
+                <TextBox x:Name="AuthorityAddress" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="25" Width="1065"/>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
-                <Label Content="Account"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
-                <ComboBox x:Name="Accounts" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="30">
-                    <ComboBoxItem Content="Windows user" Tag="Windows user" IsSelected="True"/>
-                    <ComboBoxItem Content="Windows known users" Tag="Windows known users" />
-                    <ComboBoxItem Content="Any Microsoft Identity" Tag="Any Microsoft Identity"/>
-                </ComboBox>
-                <Label Content="User not signed in." x:Name="IDTokenExp" Height="50" Margin="300,0,0,0" Width="881" FontFamily="Segoe Ui" FontSize ="30" />
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1000"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
-                <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="30"/>
-                <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="30" SelectionChanged="Scopes_SelectionChanged">
-                    <ComboBoxItem Content="Static Consent" Tag="f8a9ff7f-847b-4823-88bf-d2c9061330f7/.default"/>
-                    <ComboBoxItem Content="Microsoft Graph Profile" Tag="user.read" IsSelected="True"/>
-                    <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
-                    <ComboBoxItem Content="Sign In Only" Tag="openid"/>
-                    <ComboBoxItem Content="Everything" Tag="user.read people.read group.read.all"/>
-                </ComboBox>
-                <TextBox x:Name="SignInScope" Text="user.read" Margin="5,5,0,5"  FontFamily="Segoe Ui" FontSize ="30" />
-                <Label Content="" x:Name="AccessTokenExp" Height="50" Margin="170,0,0,0" Width="878" FontFamily="Segoe Ui" FontSize ="30" />
-            </StackPanel>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                
+                <Grid Grid.Column="0" Grid.Row="0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                        <Label Content="Account"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="25"/>
+                        <ComboBox x:Name="Accounts" Height="50" Margin="10,0,10,0" Width="550" FontFamily="Segoe Ui" FontSize ="25">
+                            <ComboBoxItem Content="Current Windows user using broker" Tag="Windows user" IsSelected="True"/>
+                            <ComboBoxItem Content="Windows known users using broker" Tag="Windows known users" />
+                            <ComboBoxItem Content="Any Microsoft Identity without broker" Tag="Any Microsoft Identity"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="215,5,5,5" >
-                <Viewbox Height="{Binding Path=ActualHeight, ElementName=CheckBoxPanel}">
-                    <CheckBox x:Name="UseCAE" IsChecked="True">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="2" ScaleY="2" />
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
-                </Viewbox>
-                <TextBlock Text="Use Continous Access Evaluation" FontFamily="Segoe Ui" FontSize ="30"/>
-                <Viewbox Height="{Binding Path=ActualHeight, ElementName=CheckBoxPanel}" Margin="50,0,0,0">
-                    <CheckBox x:Name="AccessEval" IsChecked="False" Unchecked="AccessEval_Unchecked" Checked="AccessEval_Checked">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="2" ScaleY="2" />
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
-                </Viewbox>
-                <TextBlock Text="Evaluate Access with Graph" FontFamily="Segoe Ui" FontSize ="30"/>
+                <Grid Grid.Column="1" Grid.Row="0">
+                    <Label Content="User not signed in." x:Name="IDTokenExp" Height="50" Width="998" FontFamily="Segoe Ui" FontSize ="25" HorizontalAlignment="Left"/>
+                </Grid>
+
+                <Grid Grid.Column="0" Grid.Row="1">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                        <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="25"/>
+                        <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="25" SelectionChanged="Scopes_SelectionChanged">
+                            <ComboBoxItem Content="Static Consent" Tag="acaf6ce9-81f0-462a-a93d-a314070738d3/.default"/>
+                            <ComboBoxItem Content="Microsoft Graph Profile" Tag="user.read" IsSelected="True"/>
+                            <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
+                            <ComboBoxItem Content="Sign In Only" Tag="openid"/>
+                            <ComboBoxItem Content="Everything" Tag="user.read people.read group.read.all"/>
+                        </ComboBox>
+                        <TextBox x:Name="SignInScope" Text="user.read"  FontFamily="Segoe Ui" FontSize ="25" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Column="1" Grid.Row="1">
+                    <Label Content="" x:Name="AccessTokenExp" Height="50" Width="932" FontFamily="Segoe Ui" FontSize ="25" HorizontalAlignment="Left" />
+                </Grid>
+            </Grid>
+        
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="5,5,5,5" >
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
+                    <CheckBox x:Name="UseCAE" IsChecked="False" Content="Use Continous Access Evaluation" FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
+                    <CheckBox x:Name="AccessEval" IsChecked="False" Unchecked="AccessEval_Unchecked" Checked="AccessEval_Checked" Content="Evaluate Access with Graph"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
+                    <CheckBox x:Name="RefreshID" IsChecked="False" Unchecked="RefreshID_Unchecked" Checked="RefreshID_Checked" Content="Implement Open ID Connect"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
+                    <CheckBox x:Name="Force" IsChecked="False" Unchecked="Force_Unchecked" Checked="Force_Checked"  Content="Force Refresh"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
+                    <CheckBox x:Name="ClaimChallenge" IsChecked="False" Unchecked="ClaimChallenge_Unchecked" Checked="ClaimChallenge_Checked"  Content="Claim Challenge"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
+                </StackPanel>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10" Width="1744">
-                <Button x:Name="SignIn" Content="Sign In" HorizontalAlignment="Right" Padding="5" Click="SignInButton_Click" Margin="10,5,0,5" FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="CallUserInfoButton" Content="OIDC UserInfo" HorizontalAlignment="Right" Padding="5" Click="CallUserInfoButton_Click"  Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="CallProfileButton" Content="Profile" HorizontalAlignment="Right" Padding="5" Click="CallProfileButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="CallPeopleButton" Content="People" HorizontalAlignment="Right" Padding="5" Click="CallPeopleButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="CallGroupsButton" Content="Groups" HorizontalAlignment="Right" Padding="5" Click="CallGroupsButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="SignOutButton" Content="Sign Out" HorizontalAlignment="Right" Padding="5" Click="SignOutButton_Click" Margin="5"  FontFamily="Segoe Ui" FontSize ="30" />
-                <Button x:Name="ClearTokens" Content="Clear Tokens" HorizontalAlignment="Right" Padding="5" Click="ClearTokens_Click"  Margin="5"  FontFamily="Segoe Ui" FontSize ="30" />
+                <Button x:Name="SignIn" Content="Sign In" HorizontalAlignment="Right" Padding="5" Click="SignInButton_Click" Margin="10,5,5,5" FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="CallUserInfoButton" Content="OIDC UserInfo" HorizontalAlignment="Right" Padding="5" Click="CallUserInfoButton_Click"  Margin="5" FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="CallProfileButton" Content="Profile" HorizontalAlignment="Right" Padding="5" Click="CallProfileButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="CallPeopleButton" Content="People" HorizontalAlignment="Right" Padding="5" Click="CallPeopleButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="CallGroupsButton" Content="Groups" HorizontalAlignment="Right" Padding="5" Click="CallGroupsButton_Click" Margin="5" FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="SignOutButton" Content="Sign Out" HorizontalAlignment="Right" Padding="5" Click="SignOutButton_Click" Margin="5"  FontFamily="Segoe Ui" FontSize ="25" />
+                <Button x:Name="ClearTokens" Content="Clear Tokens" HorizontalAlignment="Right" Padding="5" Click="ClearTokens_Click"  Margin="5"  FontFamily="Segoe Ui" FontSize ="25" />
             </StackPanel>
         </StackPanel>
 
         <StackPanel x:Name="Output" Grid.Row="1">
             <TabControl x:Name="Tabs" Height="670">
-                <TabItem Header="ID Token Claims " FontFamily="Segoe Ui" FontSize="30">
+                <TabItem Header="ID Token Claims " FontFamily="Segoe Ui" FontSize="25">
                     <StackPanel>
-                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  Height="600"  Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
+                        <TextBox x:Name="IDToken" TextWrapping="NoWrap"  Height="600"  Margin="5" FontFamily="Segoe Ui" FontSize="25" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Token Response " FontFamily="Segoe Ui" FontSize="30" >
+                <TabItem Header="Token Response " FontFamily="Segoe Ui" FontSize="25" >
                     <StackPanel>
-                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
+                        <TextBox x:Name="TokenResponseText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="25" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0"/>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Roles " FontFamily="Segoe Ui" FontSize="30" >
+                <TabItem Header="Roles " FontFamily="Segoe Ui" FontSize="25" >
                     <StackPanel>
-                        <TextBox x:Name="RolesText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="RolesText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="25" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Groups"  FontFamily="Segoe Ui" FontSize="30">
+                <TabItem Header="Groups"  FontFamily="Segoe Ui" FontSize="25">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="50">
-                            <Button x:Name="AddRoleOrGroup" Content="Add Role or Groups" HorizontalAlignment="Right" Padding="5" Click="AddRoleOrGroup_Click"  Margin="5"  FontFamily="Segoe Ui" FontSize ="30" />
-                            <TextBox x:Name="RoleOrGroup" Text="" Margin="5,5,0,5" Width="600" FontFamily="Segoe Ui" FontSize ="30" />
+                            <Button x:Name="AddRoleOrGroup" Content="Add Role or Groups" HorizontalAlignment="Right" Padding="5" Click="AddRoleOrGroup_Click"  Margin="5"  FontFamily="Segoe Ui" FontSize ="25" />
+                            <TextBox x:Name="RoleOrGroup" Text="" Margin="5,5,0,5" Width="600" FontFamily="Segoe Ui" FontSize ="25" />
                         </StackPanel>
                         <ListView x:Name="RolesAndGroupsLV" >
                             <ListView.View>
@@ -119,14 +133,14 @@
                         </ListView>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Results " FontFamily="Segoe Ui" FontSize="30" >
+                <TabItem Header="Results " FontFamily="Segoe Ui" FontSize="25" >
                     <StackPanel>
-                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="ResultText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="25" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Log " FontFamily="Segoe Ui" FontSize="30" >
+                <TabItem Header="Log " FontFamily="Segoe Ui" FontSize="25" >
                     <StackPanel>
-                        <TextBox x:Name="LogText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="30" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
+                        <TextBox x:Name="LogText" TextWrapping="NoWrap" Height="600" Margin="5" FontFamily="Segoe Ui" FontSize="25" ScrollViewer.VerticalScrollBarVisibility="Visible"  ScrollViewer.HorizontalScrollBarVisibility="Visible" BorderThickness="0" />
                     </StackPanel>
                 </TabItem>
             </TabControl>

@@ -18,7 +18,6 @@ namespace BestPractices
         private static IPublicClientApplication MSALPublicClientApp = null;
         private bool userIsSignedIn = false;
         private readonly System.Timers.Timer accessEvaluationTimer = new System.Timers.Timer();
-        private bool doAccessEvaluation = false;
 
         private static readonly StringBuilder sbLog = new StringBuilder();
         private static readonly StringBuilder sbIDTokenClaims = new StringBuilder();
@@ -29,7 +28,13 @@ namespace BestPractices
         private readonly Logger logger = new Logger(sbLog);
         private string IDTokenExpContent = "\n\rUser not signed in.";
         private string AccessTokenExpContent = string.Empty;
+
+        private bool doAccessEvaluation = false;
         private bool usingBroker = false;
+        private bool usingClaimChallenge = false;
+        private bool usingOIDC;
+        private bool usingForce = false;
+
         readonly RolesAndGroupsTabData rolesAndGroupsData = new RolesAndGroupsTabData();
         private bool groupAdmin = false;
 
@@ -70,7 +75,7 @@ namespace BestPractices
                 }
             }
 
-            var builder = PublicClientApplicationBuilder.Create(App.ClientId)
+            PublicClientApplicationBuilder builder = PublicClientApplicationBuilder.Create(App.ClientId)
                 .WithAuthority(AuthorityAddress.Text);
 
             if (UseCAE.IsChecked == true)
@@ -125,7 +130,7 @@ namespace BestPractices
                 //Set the API Endpoint to OIDC UserInfo endpoint (which is hosted in Microsoft Graph)
                 string graphAPIEndpoint = "https://graph.microsoft.com/oidc/userinfo";
 
-                //Set the scope for API call to user.read
+                //Set the scope for API call to openid
                 string[] scopes = new string[] { "openid" };
 
                 try
@@ -278,7 +283,7 @@ namespace BestPractices
             if (AuthorityAddress != null)
             {
                 ComboBoxItem auth = Authority.SelectedItem as ComboBoxItem;
-                AuthorityAddress.Text = "https://login.microsoftonline.com/oauth/v2.0/" + auth.Tag as String;
+                AuthorityAddress.Text = "https://login.microsoftonline.com/" + auth.Tag as String;
             }
         }
 
@@ -398,14 +403,13 @@ namespace BestPractices
         {
             if (Guid.TryParse(RoleOrGroup.Text, out _))
             {
-                RoleAndGroupMemberInfo groupAdmin = new RoleAndGroupMemberInfo
+                RoleAndGroupMemberInfo roleAndGroup = new RoleAndGroupMemberInfo
                 {
                     ID = RoleOrGroup.Text,
                     IsMember = "",
                     Name = string.Empty
                 };
-                rolesAndGroupsData.roleAndGroupMembership.Add(groupAdmin);
-
+                rolesAndGroupsData.roleAndGroupMembership.Add(roleAndGroup);
                 RolesAndGroupsLV.Height = rolesAndGroupsData.roleAndGroupMembership.Count * 100;
             }
             else 
@@ -426,6 +430,36 @@ namespace BestPractices
             {
                 _ = AccessEvaluationTask();
             }
+        }
+
+        private void ClaimChallenge_Checked(object sender, RoutedEventArgs e)
+        {
+            usingClaimChallenge = true;
+        }
+
+        private void ClaimChallenge_Unchecked(object sender, RoutedEventArgs e)
+        {
+            usingClaimChallenge = false;
+        }
+
+        private void RefreshID_Unchecked(object sender, RoutedEventArgs e)
+        {
+            usingOIDC = false;
+        }
+
+        private void RefreshID_Checked(object sender, RoutedEventArgs e)
+        {
+            usingOIDC = true;
+        }
+
+        private void Force_Unchecked(object sender, RoutedEventArgs e)
+        {
+            usingForce = false;
+        }
+
+        private void Force_Checked(object sender, RoutedEventArgs e)
+        {
+            usingForce = true;
         }
     }
 }

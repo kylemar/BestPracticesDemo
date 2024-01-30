@@ -1,0 +1,16 @@
+{"requests":[
+{"id":"1","method":"GET","url":"/me?$select=signInSessionsValidFromDateTime,refreshTokensValidFromDateTime,deletedDateTime,accountEnabled"},
+
+{"id":"2","dependsOn": [ "1" ],"method":"GET","url":"/servicePrincipals(appId='acaf6ce9-81f0-462a-a93d-a314070738d3')?$select=appRoles,appRoleAssignmentRequired,accountEnabled"},
+
+{"id":"3","dependsOn": [ "2" ],"method":"GET","url":"/me/appRoleAssignments?$filter=resourceId eq 9ae2b746-8c8d-4cb7-afed-93a1f2fd9c9e"},
+
+{"id":"4","dependsOn": [ "3" ],"method": "POST","url":"me/checkMemberObjects",
+	"body":{"ids":["62e90394-69f5-4237-9190-012177145e10",
+                       "f2ef992c-3afb-46b9-b7cf-a126ee74c451",
+                       "fdd7a751-b60b-444a-984c-02652fe8fa1c",
+                       "cf1c38e5-3621-4004-a7cb-879624dced7c",
+                       "32055622-bbfb-467b-8214-98b01e0967bf",
+                       "b17b3ae9-67b6-43ef-8944-8b0e0c1b6cb3",
+                       "64b8ae64-f504-4853-b400-a217900fad56"]},
+         "headers":{"Content-Type":"application/json"}}]}

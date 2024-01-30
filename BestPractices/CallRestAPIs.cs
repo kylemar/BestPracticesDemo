@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Identity.Client;
 
 namespace BestPractices
 {
@@ -125,60 +126,40 @@ namespace BestPractices
                 }
                 else
                 {
-                    if (APIresponse.StatusCode == System.Net.HttpStatusCode.Unauthorized
-                        && APIresponse.Headers.WwwAuthenticate.Any())
+                    string claimChallenge = WwwAuthenticateParameters.GetClaimChallengeFromResponseHeaders(APIresponse.Headers);
+                    if (APIresponse.StatusCode == System.Net.HttpStatusCode.Unauthorized && claimChallenge != null)
                     {
-                        AuthenticationHeaderValue bearer = APIresponse.Headers.WwwAuthenticate.First
-                            (v => v.Scheme == "Bearer");
-                        IEnumerable<string> parameters = bearer.Parameter.Split(',').Select(
-                            v => v.Trim()).ToList();
-                        var error = GetParameter(parameters, "error");
+                        logger.Log($"CAE Claims challenge received: {claimChallenge}");
+                        UpdateScreen();
 
-                        if (null != error && "insufficient_claims" == error)
+                        if (handleCAE)
                         {
-                            var claimChallengeParameter = GetParameter(parameters, "claims");
-                            if (null != claimChallengeParameter)
+                            var newAccessToken = await GetToken(TokenType.Access, scopes, claimChallenge);
+                            if (null != newAccessToken)
                             {
-                                var claimChallengebase64Bytes = System.Convert.FromBase64String(
-                                    claimChallengeParameter);
-                                var ClaimChallenge = System.Text.Encoding.UTF8.GetString(
-                                    claimChallengebase64Bytes);
+                                var APIrequestAfterCAE = new HttpRequestMessage(HttpMethod.Get, url);
+                                APIrequestAfterCAE.Headers.Authorization =
+                                    new AuthenticationHeaderValue("Bearer", newAccessToken);
 
-                                logger.Log($"CAE Claims challenge received: {ClaimChallenge}");
-                                UpdateScreen();
+                                HttpResponseMessage APIresponseAfterCAE;
+                                APIresponseAfterCAE = await httpClient.SendAsync(
+                                    APIrequestAfterCAE);
 
-                                if (handleCAE)
+                                if (APIresponseAfterCAE.IsSuccessStatusCode)
                                 {
-                                    var newAccessToken = await GetToken(TokenType.Access, scopes, ClaimChallenge);
-                                    if (null != newAccessToken)
-                                    {
-                                        var APIrequestAfterCAE = new HttpRequestMessage(
-                                            System.Net.Http.HttpMethod.Get, url);
-                                        APIrequestAfterCAE.Headers.Authorization =
-                                            new System.Net.Http.Headers.AuthenticationHeaderValue(
-                                                "Bearer", newAccessToken);
-
-                                        HttpResponseMessage APIresponseAfterCAE;
-                                        APIresponseAfterCAE = await httpClient.SendAsync(
-                                            APIrequestAfterCAE);
-
-                                        if (APIresponseAfterCAE.IsSuccessStatusCode)
-                                        {
-                                            var content = await APIresponseAfterCAE.Content.ReadAsStringAsync();
-                                            var expandedContent = content.Replace(",", "," + Environment.NewLine);
-                                            return expandedContent;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    throw new Exception("CAEEvent");
+                                    var content = await APIresponseAfterCAE.Content.ReadAsStringAsync();
+                                    var expandedContent = content.Replace(",", "," + Environment.NewLine);
+                                    return expandedContent;
                                 }
                             }
                         }
-                        message = $"{APIresponse.StatusCode} Authorization token: + {bearer}";
-                        logger.Log($"Call to {url} failed with {message}");
+                        else
+                        {
+                            throw new Exception("CAEEvent");
+                        }
+
                     }
+
                     message = $"Status:{APIresponse.StatusCode} Reason:{APIresponse.ReasonPhrase} ";
                     string messageToLog = $"Call to {url} failed with {message}";
                     foreach (KeyValuePair<string, IEnumerable<string>> header in APIresponse.Headers)
