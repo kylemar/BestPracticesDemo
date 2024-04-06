@@ -117,13 +117,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Identity.Client">
-      <Version>4.54.0</Version>
+      <Version>4.60.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Identity.Client.Desktop">
-      <Version>4.54.0</Version>
+      <Version>4.60.1</Version>
     </PackageReference>
     <PackageReference Include="System.Text.Json">
-      <Version>7.0.2</Version>
+      <Version>8.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

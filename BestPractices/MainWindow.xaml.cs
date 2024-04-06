@@ -31,7 +31,6 @@ namespace BestPractices
 
         private bool doAccessEvaluation = false;
         private bool usingBroker = false;
-        private bool usingClaimChallenge = false;
         private bool usingOIDC;
         private bool usingForce = false;
 
@@ -430,16 +429,6 @@ namespace BestPractices
             {
                 _ = AccessEvaluationTask();
             }
-        }
-
-        private void ClaimChallenge_Checked(object sender, RoutedEventArgs e)
-        {
-            usingClaimChallenge = true;
-        }
-
-        private void ClaimChallenge_Unchecked(object sender, RoutedEventArgs e)
-        {
-            usingClaimChallenge = false;
         }
 
         private void RefreshID_Unchecked(object sender, RoutedEventArgs e)

@@ -34,19 +34,11 @@ namespace BestPractices
                     try
                     {
                         bool force = false;
-                        string challenge = null;
-
                         if (usingForce)
                         {
                             force = true;
                         }
-
-                        if (usingClaimChallenge)
-                        {
-                            challenge = $"{{\"id_token\":{{\"nbf\":{{\"essential\":true, \"value\":\"{expiresAtUnix}\"}}}}}}";
-                        }
-
-                        await GetToken(TokenType.ID, new string[] { "" }, silent: true, forceRefresh: force, claimsChallenge: challenge);
+                        await GetToken(TokenType.ID, new string[] { "" }, silent: true, forceRefresh: force);
 
                     }
                     catch (Exception ex)

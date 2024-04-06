@@ -39,23 +39,23 @@ namespace BestPractices
             developer.Name = "App Developers";
             roleAndGroupMembership.Add(developer);
 
-            RoleAndGroupMemberInfo pink = new RoleAndGroupMemberInfo();
-            pink.ID = "32055622-bbfb-467b-8214-98b01e0967bf";
-            pink.IsMember = string.Empty;
-            pink.Name = "Pink group";
-            roleAndGroupMembership.Add(pink);
+            RoleAndGroupMemberInfo Reviewers = new RoleAndGroupMemberInfo();
+            Reviewers.ID = "7a567df1-6edf-4aae-837e-85467916c386";
+            Reviewers.IsMember = string.Empty;
+            Reviewers.Name = "Reviewers group";
+            roleAndGroupMembership.Add(Reviewers);
 
-            RoleAndGroupMemberInfo NestedDays = new RoleAndGroupMemberInfo();
-            NestedDays.ID = "b17b3ae9-67b6-43ef-8944-8b0e0c1b6cb3";
-            NestedDays.IsMember = string.Empty;
-            NestedDays.Name = "Nested Days group";
-            roleAndGroupMembership.Add(NestedDays);
+            RoleAndGroupMemberInfo Finance = new RoleAndGroupMemberInfo();
+            Finance.ID = "9f93aa90-3e18-41a2-b0e3-6efee361c0b7";
+            Finance.IsMember = string.Empty;
+            Finance.Name = "Finance group";
+            roleAndGroupMembership.Add(Finance);
 
-            RoleAndGroupMemberInfo Monday = new RoleAndGroupMemberInfo();
-            Monday.ID = "64b8ae64-f504-4853-b400-a217900fad56";
-            Monday.IsMember = string.Empty;
-            Monday.Name = "Monday group";
-            roleAndGroupMembership.Add(Monday);
+            RoleAndGroupMemberInfo EmployeeAdvocacy = new RoleAndGroupMemberInfo();
+            EmployeeAdvocacy.ID = "3356e4f7-f4e4-49ba-a925-53a990d2f8c3";
+            EmployeeAdvocacy.IsMember = string.Empty;
+            EmployeeAdvocacy.Name = "Employee Advocacy group";
+            roleAndGroupMembership.Add(EmployeeAdvocacy);
         }
     }
 

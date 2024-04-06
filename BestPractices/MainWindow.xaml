@@ -27,7 +27,7 @@
                     <ComboBoxItem Content="All Users" Tag="Common" IsSelected="True"/>
                     <ComboBoxItem Content="Consumers" Tag="Consumers"/>
                     <ComboBoxItem Content="Organizations" Tag="Organizations"/>
-                    <ComboBoxItem Content="This Tenant" Tag="833ced3d-cb2e-41de-92f1-29e2af035ddc"/>
+                    <ComboBoxItem Content="This Tenant" Tag="c72a295d-d7a5-41ea-a351-b15dd9f67215"/>
                 </ComboBox>
                 <TextBox x:Name="AuthorityAddress" Text="https://login.microsoftonline.com/common" Margin="15" FontFamily="Segoe Ui" FontSize ="25" Width="1065"/>
             </StackPanel>
@@ -62,7 +62,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5">
                         <Label Content="Sign In Scopes"  HorizontalAlignment="Left" Height="50" Margin="10,0,0,0" Width="190" FontFamily="Segoe Ui" FontSize ="25"/>
                         <ComboBox x:Name="Scopes" HorizontalAlignment="Left" Height="50" Margin="10,0,10,0" Width="350" FontFamily="Segoe Ui" FontSize ="25" SelectionChanged="Scopes_SelectionChanged">
-                            <ComboBoxItem Content="Static Consent" Tag="acaf6ce9-81f0-462a-a93d-a314070738d3/.default"/>
+                            <ComboBoxItem Content="Static Consent" Tag="182a4f96-9d7f-4fc7-a387-dd68c15e52d2/.default"/>
                             <ComboBoxItem Content="Microsoft Graph Profile" Tag="user.read" IsSelected="True"/>
                             <ComboBoxItem Content="User Consent" Tag="user.read people.read"/>
                             <ComboBoxItem Content="Sign In Only" Tag="openid"/>
@@ -83,7 +83,6 @@
                     <CheckBox x:Name="AccessEval" IsChecked="False" Unchecked="AccessEval_Unchecked" Checked="AccessEval_Checked" Content="Evaluate Access with Graph"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
                     <CheckBox x:Name="RefreshID" IsChecked="False" Unchecked="RefreshID_Unchecked" Checked="RefreshID_Checked" Content="Implement Open ID Connect"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
                     <CheckBox x:Name="Force" IsChecked="False" Unchecked="Force_Unchecked" Checked="Force_Checked"  Content="Force Refresh"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
-                    <CheckBox x:Name="ClaimChallenge" IsChecked="False" Unchecked="ClaimChallenge_Unchecked" Checked="ClaimChallenge_Checked"  Content="Claim Challenge"  FontFamily="Segoe Ui" FontSize="30" VerticalContentAlignment="Center" Margin="20,0,5,0"/>
                 </StackPanel>
             </StackPanel>
 
