@@ -30,7 +30,9 @@ or download and extract the repository .zip file.
 
 #### Step 2: Open the project in Visual studio and run it. 
 
-Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. The following window should appear. Select the highlighted(Different colors) options in the popup.
+Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. If the sample does not build make sure your Visual Studio has NuGet (https://api.nuget.org/v3/index.json) as a [package source](https://learn.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
+
+The following window should appear. Select the highlighted(Different colors) options in the popup.
 
  ![Screenshot](Images/1.png)
  
