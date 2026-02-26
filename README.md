@@ -11,9 +11,8 @@ In this demo, you will learn, how to implement Continous Access Evaluation (CAE)
 #### How to run this sample 
 
 Pre-requisites
-1.	Install .NET framework for Windows by following the instructions at https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48which 
-2.	Install Visual Studio - https://visualstudio.microsoft.com/downloads/
-3.	A user account in your Azure AD tenant, or a Microsoft personal account
+1.	Install Visual Studio - https://visualstudio.microsoft.com/downloads/  Select .NET Desktop Development
+2.	A user account in your Azure AD tenant, or a Microsoft personal account
 
 #### Step 1: Clone or download this repository
 
@@ -31,7 +30,9 @@ or download and extract the repository .zip file.
 
 #### Step 2: Open the project in Visual studio and run it. 
 
-Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. The following window should appear. Select the highlighted(Different colors) options in the popup.
+Once you download the sample, open the solution file in visual studio and after successful rebuild, debug/run the sample. If the sample does not build make sure your Visual Studio has NuGet (https://api.nuget.org/v3/index.json) as a [package source](https://learn.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
+
+The following window should appear. Select the highlighted(Different colors) options in the popup.
 
  ![Screenshot](Images/1.png)
  
