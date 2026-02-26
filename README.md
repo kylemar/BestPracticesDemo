@@ -1,18 +1,14 @@
-# Implemeting CAE on the client application with MSAL.NET library. 
+# Implementing CAE on the client application with MSAL.NET library. 
 
 ## About this Demo
 
 ### Scope of this demo
 
-In this demo, you will learn, how to implement Continous Access Evaluation (CAE) in a client application via the MSAL.NET library. This is a WPF application that is making calls to the Microsoft Graph API. 
+In this demo, you will learn, how to implement Continuous Access Evaluation (CAE) in a client application via the MSAL.NET library. This is a WPF application that is making calls to the Microsoft Graph API. 
 
 ### Details of the demo – How it works 
 
 #### How to run this sample 
-
-Pre-requisites
-1.	Install Visual Studio - https://visualstudio.microsoft.com/downloads/  Select .NET Desktop Development
-2.	A user account in your Azure AD tenant, or a Microsoft personal account
 
 #### Step 1: Clone or download this repository
 
@@ -37,7 +33,7 @@ The following window should appear. Select the highlighted(Different colors) opt
  ![Screenshot](Images/1.png)
  
  
-#### Step 3: Initiate authetication from the app.
+#### Step 3: Initiate authentication from the app.
 
 Click on the Sign-in button which should bring the authentication page similar to the image below.
 
